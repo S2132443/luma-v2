@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Memory - Luma Bot{% endblock %}
+
+{% block content %}
+<h1>Memory</h1>
+
+{% if success %}
+<div class="success-message">
+    Memory added successfully!
+</div>
+{% endif %}
+
+{% if error %}
+<div style="background: rgba(245, 101, 101, 0.2); border: 1px solid var(--danger-color); color: var(--danger-color); padding: 1rem; border-radius: 6px; margin-bottom: 1rem;">
+    {{ error }}
+</div>
+{% endif %}
+
+<div class="card">
+    <h3>Add New Memory</h3>
+    <form method="post">
+        <label for="user_id">User ID (Discord ID):</label>
+        <input type="text" id="user_id" name="user_id" placeholder="123456789012345678" required>
+
+        <label for="memory_type">Memory Type:</label>
+        <select id="memory_type" name="memory_type" required>
+            <option value="long">Long-term</option>
+            <option value="short">Short-term</option>
+        </select>
+
+        <label for="content">Memory Content:</label>
+        <textarea id="content" name="content" placeholder="Enter what the bot should remember about this user..." required></textarea>
+
+        <input type="submit" value="Add Memory">
+    </form>
+</div>
+
+<div class="card">
+    <h3>Stored Memories</h3>
+    {% if memories %}
+        {% for mem in memories %}
+        <div class="memory-item">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                <span class="memory-type">{{ mem.memory_type }}</span>
+                <form method="post" action="/memory/delete/{{ mem.id }}" style="margin: 0; padding: 0; background: none; box-shadow: none; border: none;">
+                    <button type="submit" class="btn-delete" onclick="return confirm('Are you sure you want to delete this memory?')">Delete</button>
+                </form>
+            </div>
+            <div><strong>User ID:</strong> {{ mem.user_id }}</div>
+            <div>{{ mem.content }}</div>
+            <div class="timestamp">{{ mem.timestamp.strftime('%Y-%m-%d %H:%M:%S') if mem.timestamp else 'N/A' }}</div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <p style="color: var(--text-secondary);">No memories stored yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

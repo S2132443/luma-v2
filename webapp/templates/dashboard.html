@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Luma Bot{% endblock %}
+
+{% block content %}
+<h1>Dashboard</h1>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value">{{ total_tokens }}</div>
+        <div class="stat-label">Total Tokens Used</div>
+    </div>
+</div>
+
+<div class="card">
+    <h3>Recent Message Logs</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Timestamp</th>
+                <th>User</th>
+                <th>Message</th>
+                <th>Response</th>
+                <th>Tokens</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in logs %}
+            <tr>
+                <td class="timestamp">{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') if log.timestamp else 'N/A' }}</td>
+                <td>{{ log.username }}</td>
+                <td>{{ log.user_message[:100] }}{% if log.user_message|length > 100 %}...{% endif %}</td>
+                <td>{{ log.bot_response[:100] }}{% if log.bot_response|length > 100 %}...{% endif %}</td>
+                <td>{{ log.input_tokens + log.output_tokens }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

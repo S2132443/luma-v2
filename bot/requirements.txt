@@ -1,0 +1,5 @@
+discord.py
+openai
+sqlalchemy
+psycopg2-binary
+cryptography

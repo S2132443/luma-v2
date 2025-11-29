@@ -1,0 +1,36 @@
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: luma
+      POSTGRES_PASSWORD: lumapass
+      POSTGRES_DB: luma
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  bot:
+    build:
+      context: .
+      dockerfile: bot/Dockerfile
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql://luma:lumapass@db:5432/luma
+    restart: unless-stopped
+
+  webapp:
+    build:
+      context: .
+      dockerfile: webapp/Dockerfile
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql://luma:lumapass@db:5432/luma
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

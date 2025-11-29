@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Message Logs - Luma Bot{% endblock %}
+
+{% block content %}
+<h1>Message Logs</h1>
+
+<div class="card">
+    <table>
+        <thead>
+            <tr>
+                <th>Timestamp</th>
+                <th>User</th>
+                <th>Message</th>
+                <th>Response</th>
+                <th>Tokens</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in logs %}
+            <tr>
+                <td class="timestamp">{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') if log.timestamp else 'N/A' }}</td>
+                <td>{{ log.username }}</td>
+                <td>{{ log.user_message }}</td>
+                <td>{{ log.bot_response }}</td>
+                <td>{{ log.input_tokens + log.output_tokens }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="pagination">
+        {% if has_prev %}
+        <a href="?page={{ prev_num }}">&laquo; Previous</a>
+        {% endif %}
+        <span class="current">Page {{ page }} of {{ pages }}</span>
+        {% if has_next %}
+        <a href="?page={{ next_num }}">Next &raquo;</a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

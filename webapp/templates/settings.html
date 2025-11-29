@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - Luma Bot{% endblock %}
+
+{% block content %}
+<h1>Settings</h1>
+
+{% if success %}
+<div class="success-message">
+    Settings saved successfully! The bot will use the new personality immediately.
+</div>
+{% endif %}
+
+<form method="post">
+    <label for="deepseek_api_key">DeepSeek API Key:</label>
+    <input type="password" id="deepseek_api_key" name="deepseek_api_key" value="{{ deepseek_key }}" placeholder="sk-...">
+
+    <label for="discord_token">Discord Token:</label>
+    <input type="password" id="discord_token" name="discord_token" value="{{ discord_token }}" placeholder="Your Discord bot token">
+
+    <label for="personality">Bot Personality:</label>
+    <textarea id="personality" name="personality" placeholder="Define how your bot should behave...">{{ personality }}</textarea>
+
+    <input type="submit" value="Save Settings">
+</form>
+{% endblock %}
