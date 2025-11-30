@@ -2,3 +2,8 @@ flask
 flask-sqlalchemy
 psycopg2-binary
 cryptography
+openai
+requests
+PyPDF2
+pandas
+openpyxl

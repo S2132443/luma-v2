@@ -1,6 +1,7 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime
+from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime
+import json
 
 Base = declarative_base()
 
@@ -37,3 +38,7 @@ class Memory(Base):
     memory_type = Column(String(10), nullable=False)  # 'short' or 'long'
     content = Column(Text, nullable=False)
     timestamp = Column(DateTime, default=datetime.utcnow)
+    source = Column(String(20), default='manual')  # 'manual' or 'ai_suggested'
+    importance = Column(Integer, default=0)  # Score for memory relevance
+    tags = Column(Text)  # JSON array for memory categorization
+    approved = Column(Boolean, default=True)  # For AI-suggested memories

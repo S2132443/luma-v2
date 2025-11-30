@@ -24,10 +24,22 @@
         <input type="text" id="user_id" name="user_id" placeholder="123456789012345678" required>
 
         <label for="memory_type">Memory Type:</label>
-        <select id="memory_type" name="memory_type" required>
+        <select id="memory_type" name="memory_type">
             <option value="long">Long-term</option>
             <option value="short">Short-term</option>
         </select>
+
+        <label for="source">Source:</label>
+        <select id="source" name="source">
+            <option value="manual">Manual</option>
+            <option value="ai_suggested">AI Suggested</option>
+        </select>
+
+        <label for="importance">Importance (0-10):</label>
+        <input type="number" id="importance" name="importance" min="0" max="10" value="0">
+
+        <label for="tags">Tags (comma-separated):</label>
+        <input type="text" id="tags" name="tags" placeholder="important, fact, preference">
 
         <label for="content">Memory Content:</label>
         <textarea id="content" name="content" placeholder="Enter what the bot should remember about this user..." required></textarea>
@@ -36,13 +48,54 @@
     </form>
 </div>
 
+{% if memory_suggestions %}
+<div class="card">
+    <h3>Memory Suggestions (AI)</h3>
+    {% for mem in memory_suggestions %}
+    <div class="memory-item">
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+            <div>
+                <span class="memory-type" style="background: #ed8936;">AI Suggested</span>
+                <span class="memory-type" style="background: #e53e3e;">Pending Approval</span>
+            </div>
+            <div>
+                <form method="post" action="/memory/approve/{{ mem.id }}" style="display: inline; margin: 0 5px;">
+                    <button type="submit" class="btn" style="background: var(--success-color);">Approve</button>
+                </form>
+                <form method="post" action="/memory/delete/{{ mem.id }}" style="display: inline;">
+                    <button type="submit" class="btn-delete" onclick="return confirm('Are you sure you want to reject this memory suggestion?')">Reject</button>
+                </form>
+            </div>
+        </div>
+        <div><strong>User ID:</strong> {{ mem.user_id }}</div>
+        <div>{{ mem.content }}</div>
+        <div class="timestamp">{{ mem.timestamp.strftime('%Y-%m-%d %H:%M:%S') if mem.timestamp else 'N/A' }}</div>
+        {% if mem.importance > 0 %}
+        <div><strong>Importance:</strong> {{ mem.importance }}/10</div>
+        {% endif %}
+        {% if mem.tags %}
+        <div><strong>Tags:</strong> {{ mem.tags }}</div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
 <div class="card">
     <h3>Stored Memories</h3>
     {% if memories %}
         {% for mem in memories %}
         <div class="memory-item">
             <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
-                <span class="memory-type">{{ mem.memory_type }}</span>
+                <div>
+                    <span class="memory-type">{{ mem.memory_type }}</span>
+                    {% if mem.source == 'ai_suggested' %}
+                        <span class="memory-type" style="background: #ed8936;">AI Suggested</span>
+                    {% endif %}
+                    {% if mem.importance > 0 %}
+                        <span class="memory-type" style="background: #3182ce;">Importance: {{ mem.importance }}</span>
+                    {% endif %}
+                </div>
                 <form method="post" action="/memory/delete/{{ mem.id }}" style="margin: 0; padding: 0; background: none; box-shadow: none; border: none;">
                     <button type="submit" class="btn-delete" onclick="return confirm('Are you sure you want to delete this memory?')">Delete</button>
                 </form>
@@ -50,6 +103,9 @@
             <div><strong>User ID:</strong> {{ mem.user_id }}</div>
             <div>{{ mem.content }}</div>
             <div class="timestamp">{{ mem.timestamp.strftime('%Y-%m-%d %H:%M:%S') if mem.timestamp else 'N/A' }}</div>
+            {% if mem.tags %}
+            <div><strong>Tags:</strong> {{ mem.tags }}</div>
+            {% endif %}
         </div>
         {% endfor %}
     {% else %}

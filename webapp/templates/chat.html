@@ -1,0 +1,398 @@
+{% extends "base.html" %}
+
+{% block title %}Chat - Luma Bot{% endblock %}
+
+{% block content %}
+<div class="chat-container">
+    <div class="chat-header">
+        <h1>Chat with Luma</h1>
+        <div class="user-info">
+            <span>Default User ID: <strong>web_user</strong></span>
+        </div>
+    </div>
+
+    <div class="chat-messages" id="chat-messages">
+        <!-- Messages will be loaded here -->
+        <div class="message bot-message">
+            <div class="message-content">
+                Hello! I'm Luma, your AI assistant. How can I help you today?
+            </div>
+            <div class="message-timestamp"></div>
+        </div>
+    </div>
+
+    <div class="chat-input-area">
+        <div class="file-upload-section">
+            <label for="document-upload">Upload Document to Memories:</label>
+            <input type="file" id="document-upload" name="document" accept=".pdf,.xlsx,.xls,.txt,.json,.csv">
+            <button type="button" id="upload-btn">Upload</button>
+            <div class="file-info" id="file-info"></div>
+        </div>
+        
+        <div class="input-row">
+            <input type="text" id="message-input" placeholder="Type your message here..." />
+            <button type="button" id="send-btn">Send</button>
+        </div>
+    </div>
+</div>
+
+<style>
+.chat-container {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 150px);
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+.chat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.user-info {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+    background: rgba(26, 32, 44, 0.5);
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.message {
+    max-width: 80%;
+    padding: 0.75rem;
+    border-radius: 8px;
+    position: relative;
+}
+
+.user-message {
+    align-self: flex-end;
+    background: rgba(102, 126, 234, 0.3);
+    border-bottom-right-radius: 0;
+}
+
+.bot-message {
+    align-self: flex-start;
+    background: rgba(45, 55, 72, 0.8);
+    border-bottom-left-radius: 0;
+}
+
+.message-content {
+    word-wrap: break-word;
+}
+
+.message-timestamp {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    text-align: right;
+    margin-top: 0.25rem;
+}
+
+.chat-input-area {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.file-upload-section {
+    background: rgba(45, 55, 72, 0.9);
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.file-upload-section label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.file-upload-section input[type="file"] {
+    margin-bottom: 0.5rem;
+    width: 100%;
+}
+
+.file-info {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-top: 0.5rem;
+}
+
+.input-row {
+    display: flex;
+    gap: 0.5rem;
+}
+
+#message-input {
+    flex: 1;
+    padding: 0.75rem;
+    background: rgba(26, 32, 44, 0.8);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 1rem;
+}
+
+#message-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+#send-btn, #upload-btn {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+#send-btn:hover, #upload-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+@media (max-width: 768px) {
+    .chat-container {
+        height: calc(100vh - 180px);
+        padding: 0.5rem;
+    }
+    
+    .message {
+        max-width: 90%;
+    }
+    
+    .input-row {
+        flex-direction: column;
+    }
+    
+    #send-btn {
+        align-self: flex-end;
+    }
+}
+</style>
+
+<script>
+// Chat functionality with backend integration and message persistence
+document.addEventListener('DOMContentLoaded', function() {
+    const chatMessages = document.getElementById('chat-messages');
+    const messageInput = document.getElementById('message-input');
+    const sendBtn = document.getElementById('send-btn');
+    const uploadBtn = document.getElementById('upload-btn');
+    const documentUpload = document.getElementById('document-upload');
+    const fileInfo = document.getElementById('file-info');
+
+    // Load chat history from localStorage
+    function loadChatHistory() {
+        const chatHistory = JSON.parse(localStorage.getItem('chatHistory') || '[]');
+        chatMessages.innerHTML = ''; // Clear existing messages
+
+        // Add the default welcome message only if there's no history
+        if (chatHistory.length === 0) {
+            const welcomeMessage = document.createElement('div');
+            welcomeMessage.classList.add('message', 'bot-message');
+            welcomeMessage.innerHTML = `
+                <div class="message-content">Hello! I'm Luma, your AI assistant. How can I help you today?</div>
+                <div class="message-timestamp"></div>
+            `;
+            chatMessages.appendChild(welcomeMessage);
+        } else {
+            // Add all messages from history
+            chatHistory.forEach(function(msg) {
+                const messageDiv = document.createElement('div');
+                messageDiv.classList.add('message');
+                messageDiv.classList.add(msg.sender + '-message');
+
+                messageDiv.innerHTML = `
+                    <div class="message-content">${msg.content}</div>
+                    <div class="message-timestamp">${msg.timestamp}</div>
+                `;
+
+                chatMessages.appendChild(messageDiv);
+            });
+        }
+
+        // Scroll to bottom
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // Save message to localStorage
+    function saveMessage(content, sender) {
+        const chatHistory = JSON.parse(localStorage.getItem('chatHistory') || '[]');
+        const now = new Date();
+        const timestamp = now.toLocaleTimeString();
+
+        chatHistory.push({
+            content: content,
+            sender: sender,
+            timestamp: timestamp
+        });
+
+        // Limit history to keep only the last 50 messages to prevent localStorage bloat
+        if (chatHistory.length > 50) {
+            chatHistory.shift();
+        }
+
+        localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
+    }
+
+    // Clear chat history function
+    function clearChatHistory() {
+        localStorage.removeItem('chatHistory');
+    }
+
+    // Send message function with backend API call
+    function sendMessage() {
+        const message = messageInput.value.trim();
+        if (message) {
+            // Add user message to chat and save to localStorage
+            addMessageToChat(message, 'user');
+            saveMessage(message, 'user');
+            messageInput.value = '';
+
+            // Disable input while waiting for response
+            messageInput.disabled = true;
+            sendBtn.disabled = true;
+
+            // Send to backend API
+            fetch('/api/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    message: message,
+                    user_id: 'web_user',  // Default user ID for web chat
+                    // For web chat, we'll default to not including suggestions unless globally enabled
+                    // The backend will check the global setting by default
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    addMessageToChat(`Error: ${data.error}`, 'bot');
+                    saveMessage(`Error: ${data.error}`, 'bot');
+                } else {
+                    addMessageToChat(data.response, 'bot');
+                    saveMessage(data.response, 'bot');
+                }
+            })
+            .catch(error => {
+                addMessageToChat(`Connection error: ${error.message}`, 'bot');
+                saveMessage(`Connection error: ${error.message}`, 'bot');
+            })
+            .finally(() => {
+                // Re-enable input
+                messageInput.disabled = false;
+                sendBtn.disabled = false;
+                messageInput.focus();
+            });
+        }
+    }
+
+    // Add message to chat UI
+    function addMessageToChat(content, sender) {
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('message');
+        messageDiv.classList.add(sender + '-message');
+
+        const now = new Date();
+        const timestamp = now.toLocaleTimeString();
+
+        messageDiv.innerHTML = `
+            <div class="message-content">${content}</div>
+            <div class="message-timestamp">${timestamp}</div>
+        `;
+
+        chatMessages.appendChild(messageDiv);
+
+        // Scroll to bottom
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // Event listeners
+    sendBtn.addEventListener('click', sendMessage);
+
+    messageInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    });
+
+    // File upload handling
+    documentUpload.addEventListener('change', function(e) {
+        if (e.target.files.length > 0) {
+            const file = e.target.files[0];
+            fileInfo.textContent = `Selected file: ${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
+        }
+    });
+
+    uploadBtn.addEventListener('click', function() {
+        if (documentUpload.files.length > 0) {
+            const file = documentUpload.files[0];
+
+            // Create FormData for file upload
+            const formData = new FormData();
+            formData.append('document', file);
+            formData.append('user_id', 'web_user');
+
+            // Show upload status
+            fileInfo.textContent = `Uploading ${file.name}...`;
+            uploadBtn.disabled = true;
+
+            // Send file to backend
+            fetch('/api/upload_document', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    fileInfo.textContent = `Successfully uploaded ${file.name}. Content added to memories.`;
+                    // Clear the file input
+                    documentUpload.value = '';
+                } else {
+                    fileInfo.textContent = `Error: ${data.error}`;
+                }
+            })
+            .catch(error => {
+                fileInfo.textContent = `Upload error: ${error.message}`;
+            })
+            .finally(() => {
+                uploadBtn.disabled = false;
+            });
+        } else {
+            fileInfo.textContent = 'Please select a file first.';
+        }
+    });
+
+    // Load chat history on page load
+    loadChatHistory();
+
+    // Focus the message input on load
+    messageInput.focus();
+});
+</script>
+{% endblock %}

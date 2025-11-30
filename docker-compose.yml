@@ -32,5 +32,22 @@ services:
       DATABASE_URL: postgresql://luma:lumapass@db:5432/luma
     restart: unless-stopped
 
+  # Optional Ollama service for local models
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    # Uncomment to run on GPU
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
 volumes:
   postgres_data:
+  ollama_data:
