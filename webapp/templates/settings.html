@@ -50,37 +50,37 @@
 </form>
 
 <script>
-document.getElementById('model_provider').addEventListener('change', function() {
+// Function to handle provider change
+function handleProviderChange() {
+    const providerSelect = document.getElementById('model_provider');
     const deepseekSection = document.getElementById('deepseek_section');
     const ollamaSection = document.getElementById('ollama_section');
 
-    if (this.value === 'deepseek') {
+    if (providerSelect.value === 'deepseek') {
         deepseekSection.style.display = 'block';
         ollamaSection.style.display = 'none';
-    } else if (this.value === 'ollama') {
-        deepseekSection.style.display = 'none';
-        ollamaSection.style.display = 'block';
-    }
-});
-<script>
-document.getElementById('model_provider').addEventListener('change', function() {
-    const deepseekSection = document.getElementById('deepseek_section');
-    const ollamaSection = document.getElementById('ollama_section');
-
-    if (this.value === 'deepseek') {
-        deepseekSection.style.display = 'block';
-        ollamaSection.style.display = 'none';
-    } else if (this.value === 'ollama') {
+    } else if (providerSelect.value === 'ollama') {
         deepseekSection.style.display = 'none';
         ollamaSection.style.display = 'block';
         // Fetch models when switching to Ollama
-        fetchOllamaModels();
+        setTimeout(fetchOllamaModels, 100); // Small delay to ensure UI update
     }
+}
+
+// Initial setup when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    // Set up the provider change event listener
+    document.getElementById('model_provider').addEventListener('change', handleProviderChange);
+
+    // Initialize the correct section based on current selection
+    handleProviderChange();
 });
 
 function fetchOllamaModels() {
     const endpoint = document.getElementById('ollama_endpoint').value || 'http://ollama:11434';
     const modelSelect = document.getElementById('ollama_model');
+
+    if (!modelSelect) return; // Exit if element doesn't exist
 
     // Show loading state
     modelSelect.innerHTML = '<option value="">Loading...</option>';
@@ -88,6 +88,8 @@ function fetchOllamaModels() {
     fetch('/api/ollama_models')
         .then(response => response.json())
         .then(data => {
+            if (!modelSelect) return; // Check again after async operation
+
             modelSelect.innerHTML = ''; // Clear the loading option
 
             if (data.models && data.models.length > 0) {
@@ -108,7 +110,9 @@ function fetchOllamaModels() {
         })
         .catch(error => {
             console.error('Error fetching Ollama models:', error);
-            modelSelect.innerHTML = '<option value="">Error loading models</option>';
+            if (modelSelect) {
+                modelSelect.innerHTML = '<option value="">Error loading models</option>';
+            }
         });
 }
 </script>

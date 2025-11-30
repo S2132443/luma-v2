@@ -425,8 +425,34 @@ def get_long_memory(user_id):
 def get_ollama_models(ollama_endpoint):
     """Fetch available models from Ollama"""
     try:
-        response = requests.get(f"{ollama_endpoint}/api/tags")
-        response.raise_for_status()
+        # Try different common endpoints
+        endpoints_to_try = [
+            ollama_endpoint,
+            ollama_endpoint.rstrip('/'),
+            f"{ollama_endpoint}/api/tags",
+            f"{ollama_endpoint.rstrip('/')}/api/tags",
+            "http://ollama:11434/api/tags",  # Default internal docker name
+            "http://host.docker.internal:11434/api/tags"  # For Docker Desktop
+        ]
+
+        response = None
+        for ep in endpoints_to_try:
+            if ep.endswith('/api/tags'):
+                url = ep
+            else:
+                url = f"{ep}/api/tags"
+
+            try:
+                response = requests.get(url, timeout=5)
+                response.raise_for_status()
+                break
+            except:
+                continue
+
+        if response is None:
+            print(f"Could not connect to Ollama at {ollama_endpoint}")
+            return []
+
         data = response.json()
         # Extract model names from response
         models = [model['name'] for model in data.get('models', [])]

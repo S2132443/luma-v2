@@ -193,6 +193,22 @@ The following features were implemented beyond the original Phase 1 plan:
 - Automatic loading of previous conversations
 - Message history limits to prevent storage bloat
 
+### Ollama Model Detection Feature
+- Dynamic model detection from Ollama service
+- API endpoint to fetch available models from Ollama
+- JavaScript to populate dropdown with available models
+- Multiple endpoint fallbacks to handle different network configurations (host.docker.internal, direct IP, etc.)
+
+### ChatGPT-style File Upload
+- Compact "Upload" button integrated with text input area
+- Improved UI alignment with consistent element heights
+- Better user experience with file selection and upload feedback
+
+### Settings Page Enhancement
+- Dynamic UI that shows appropriate fields based on model provider selection
+- Proper JavaScript initialization to show correct section on page load
+- Correct toggle behavior between DeepSeek and Ollama settings
+
 ## Phase 1: COMPLETE ✅
 
 Phase 1 has been successfully implemented with all core features:
@@ -205,3 +221,6 @@ Phase 1 has been successfully implemented with all core features:
 - New web chat interface with document upload
 - Configurable memory suggestions with toggle
 - Message history persistence
+- Ollama model detection and dynamic settings
+- ChatGPT-style file upload interface
+- Improved UI alignment and user experience

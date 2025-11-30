@@ -26,14 +26,9 @@
             <!-- Hidden file input -->
             <input type="file" id="document-upload" name="document" accept=".pdf,.xlsx,.xls,.txt,.json,.csv" style="display: none;">
 
-            <!-- Paperclip button for file upload -->
-            <button type="button" id="upload-btn" class="file-upload-btn" title="Upload document">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M21 15C21 19.9706 16.9706 24 12 24C7.02944 24 3 19.9706 3 15C3 10.0294 7.02944 6 12 6C14.7614 6 17.0774 7.2967 18.5 9.2C18.3156 6.3616 15.5626 4 12 4C6.47715 4 2 8.47715 2 14C2 19.5228 6.47715 24 12 24C17.5228 24 22 19.5228 22 14C22 13.3494 21.9318 12.7176 21.8014 12.1094C21.6461 12.419 21.4471 12.7052 21.2044 12.9538C20.9618 13.2023 20.6792 13.405 20.3698 13.5513C20.0604 13.6976 19.7292 13.7847 19.3918 13.8081C19.0544 13.8314 18.7164 13.7906 18.4 13.69C18.0836 13.5894 17.7952 13.4315 17.5575 13.2284C17.3198 13.0253 17.1388 12.7815 17.0276 12.5138C16.9163 12.2462 16.8777 11.9604 16.9148 11.6765C16.9518 11.3927 17.0635 11.1169 17.24 10.87C17.4165 10.6231 17.6524 10.412 17.93 10.25C18.2076 10.088 18.5191 9.9782 18.8478 9.9276C19.1765 9.877 19.5131 9.8868 19.8388 9.9565C20.1645 10.0261 20.4702 10.1542 20.7392 10.3337C21.0082 10.5131 21.2331 10.7403 21.4 11C21.5836 10.6373 21.6895 10.2432 21.7129 9.8401C21.7362 9.43701 21.6766 9.03198 21.5374 8.64812C21.3982 8.26425 21.182 7.90826 20.902 7.59991C20.622 7.29156 20.2836 7.03647 19.906 6.84882C19.5284 6.66118 19.1189 6.54423 18.6999 6.5045C18.2809 6.46476 17.8599 6.50307 17.46 6.61764C17.06 6.73221 16.6885 6.92059 16.3659 7.17193C16.0433 7.42327 15.7764 7.7318 15.58 8C15.3836 8.2682 15.2613 8.57839 15.2223 8.9044C15.1833 9.23041 15.2287 9.56177 15.3542 9.87C15.1782 9.7814 15.0197 9.6616 14.8859 9.51605C14.752 9.37051 14.6451 9.20183 14.57 9C14.3222 8.3624 14.3222 7.6776 14.57 7C14.8178 6.3224 15.303 5.7575 15.935 5.4187C16.567 5.0799 17.294 5.0001 18 5.2C18.706 5.3999 19.3178 5.8624 19.7 6.5C20.0822 7.1376 20.2022 7.8776 20.04 8.58C19.8778 9.2824 19.4454 9.8912 18.84 10.27C18.2346 10.6488 17.5 10.76 16.8 10.58C16.1 10.4 15.5178 9.9624 15.2 9.38C14.8822 8.7976 14.8822 8.1376 15.2 7.58" stroke="currentColor" stroke-width="2"/>
-                </svg>
-            </button>
-
             <input type="text" id="message-input" placeholder="Type your message here..." />
+            <!-- Upload button with text instead of icon -->
+            <button type="button" id="upload-btn" class="file-upload-btn" title="Upload document">Upload</button>
             <button type="button" id="send-btn">Send</button>
         </div>
         <div class="file-info" id="file-info"></div>
@@ -140,7 +135,7 @@
 .input-row {
     display: flex;
     gap: 0.5rem;
-    align-items: flex-end;
+    align-items: stretch; /* Changed to stretch to ensure all items match height */
 }
 
 #message-input {
@@ -152,30 +147,33 @@
     color: var(--text-primary);
     font-family: inherit;
     font-size: 1rem;
+    box-sizing: border-box; /* Include padding in height calculation */
+    margin: auto 0; /* Center vertically */
 }
 
-.file-upload-btn {
-    background: transparent;
-    border: 1px solid var(--border-color);
+.file-upload-btn, #send-btn {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    padding: 0.75rem 1rem; /* Consistent padding */
+    border: none;
     border-radius: 6px;
-    color: var(--text-primary);
-    padding: 0.75rem;
     cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    min-width: 80px; /* Consistent width */
+    box-sizing: border-box; /* Include padding in height calculation */
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.3s ease;
+    margin: auto 0; /* Center vertically */
 }
 
-.file-upload-btn:hover {
-    background: rgba(102, 126, 234, 0.3);
-    border-color: var(--primary-color);
-}
-
-.file-upload-btn svg {
-    width: 20px;
-    height: 20px;
-    pointer-events: none;
+.file-upload-btn:hover, #send-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
 }
 
 #message-input:focus {
