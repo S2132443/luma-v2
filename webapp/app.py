@@ -240,11 +240,13 @@ def chat_api():
         memory_suggestions_enabled_setting = session.query(Setting).filter_by(key='memory_suggestions_enabled').first()
         memory_suggestions_enabled = (memory_suggestions_enabled_setting.value == 'true') if memory_suggestions_enabled_setting else False
 
-        # Override with request parameter if provided, but respect global setting as default
+        # Override with request parameter if provided, but default to False for web chat
+        # This ensures web chat is always disabled by default unless explicitly enabled
         if 'include_memory_suggestions' in data:
             include_memory_suggestions = data['include_memory_suggestions']
         else:
-            include_memory_suggestions = memory_suggestions_enabled
+            # Default to False for web chat to ensure suggestions are off by default
+            include_memory_suggestions = False
 
         session.close()
 

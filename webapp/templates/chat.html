@@ -312,8 +312,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 body: JSON.stringify({
                     message: message,
                     user_id: 'web_user',  // Default user ID for web chat
-                    // For web chat, we'll default to not including suggestions unless globally enabled
-                    // The backend will check the global setting by default
+                    include_memory_suggestions: false  // Default to false for web chat
                 })
             })
             .then(response => response.json())
