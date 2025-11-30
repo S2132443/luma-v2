@@ -11,6 +11,7 @@ import json
 from backend.memory_manager import MemoryManager
 from backend.llm_interface import get_current_provider
 import openpyxl
+import requests
 
 app = Flask(__name__)
 
@@ -420,6 +421,32 @@ def get_long_memory(user_id):
     memories = MemoryManager.get_relevant_memories(user_id, context_limit=5)
     return '\n'.join([m.content for m in memories])
 
+
+def get_ollama_models(ollama_endpoint):
+    """Fetch available models from Ollama"""
+    try:
+        response = requests.get(f"{ollama_endpoint}/api/tags")
+        response.raise_for_status()
+        data = response.json()
+        # Extract model names from response
+        models = [model['name'] for model in data.get('models', [])]
+        return models
+    except Exception as e:
+        print(f"Error fetching Ollama models: {e}")
+        return []
+
+@app.route('/api/ollama_models', methods=['GET'])
+def get_available_ollama_models():
+    """API endpoint to fetch available Ollama models"""
+    session = Session()
+    try:
+        ollama_endpoint_setting = session.query(Setting).filter_by(key='ollama_endpoint').first()
+        ollama_endpoint = ollama_endpoint_setting.value if ollama_endpoint_setting else 'http://ollama:11434'
+
+        models = get_ollama_models(ollama_endpoint)
+        return jsonify({'models': models})
+    finally:
+        session.close()
 
 def log_interaction(user_id, username, channel_id, user_msg, bot_resp, input_tokens, output_tokens):
     """Log the interaction to the database"""

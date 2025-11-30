@@ -4,6 +4,3 @@ sqlalchemy
 psycopg2-binary
 cryptography
 requests
-PyPDF2
-pandas
-openpyxl

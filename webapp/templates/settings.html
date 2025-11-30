@@ -25,10 +25,13 @@
 
     <div id="ollama_section" style="display: {% if model_provider == 'ollama' %}block{% else %}none{% endif %};">
         <label for="ollama_endpoint">Ollama Endpoint:</label>
-        <input type="text" id="ollama_endpoint" name="ollama_endpoint" value="{{ ollama_endpoint }}" placeholder="http://localhost:11434">
+        <input type="text" id="ollama_endpoint" name="ollama_endpoint" value="{{ ollama_endpoint }}" placeholder="http://localhost:11434" onchange="fetchOllamaModels()">
 
         <label for="ollama_model">Ollama Model:</label>
-        <input type="text" id="ollama_model" name="ollama_model" value="{{ ollama_model }}" placeholder="llama2">
+        <select id="ollama_model" name="ollama_model">
+            <option value="{{ ollama_model }}">{{ ollama_model if ollama_model else 'Select a model...' }}</option>
+        </select>
+        <button type="button" onclick="fetchOllamaModels()">Refresh Models</button>
     </div>
 
     <label for="discord_token">Discord Token:</label>
@@ -59,5 +62,54 @@ document.getElementById('model_provider').addEventListener('change', function() 
         ollamaSection.style.display = 'block';
     }
 });
+<script>
+document.getElementById('model_provider').addEventListener('change', function() {
+    const deepseekSection = document.getElementById('deepseek_section');
+    const ollamaSection = document.getElementById('ollama_section');
+
+    if (this.value === 'deepseek') {
+        deepseekSection.style.display = 'block';
+        ollamaSection.style.display = 'none';
+    } else if (this.value === 'ollama') {
+        deepseekSection.style.display = 'none';
+        ollamaSection.style.display = 'block';
+        // Fetch models when switching to Ollama
+        fetchOllamaModels();
+    }
+});
+
+function fetchOllamaModels() {
+    const endpoint = document.getElementById('ollama_endpoint').value || 'http://ollama:11434';
+    const modelSelect = document.getElementById('ollama_model');
+
+    // Show loading state
+    modelSelect.innerHTML = '<option value="">Loading...</option>';
+
+    fetch('/api/ollama_models')
+        .then(response => response.json())
+        .then(data => {
+            modelSelect.innerHTML = ''; // Clear the loading option
+
+            if (data.models && data.models.length > 0) {
+                // Add fetched models
+                data.models.forEach(model => {
+                    const option = document.createElement('option');
+                    option.value = model;
+                    option.textContent = model;
+                    modelSelect.appendChild(option);
+                });
+            } else {
+                // If no models found, show a default option
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = 'No models found';
+                modelSelect.appendChild(option);
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching Ollama models:', error);
+            modelSelect.innerHTML = '<option value="">Error loading models</option>';
+        });
+}
 </script>
 {% endblock %}
