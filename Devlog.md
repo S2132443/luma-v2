@@ -1,4 +1,4 @@
-# Multimodal AI VTuber/Streamer Implementation Plan
+# Multimodal AI VTuber/Streamer Devlog
 
 ## Phase 1: Text Chat + Hybrid Memory + Web Interface
 
@@ -224,3 +224,144 @@ Phase 1 has been successfully implemented with all core features:
 - Ollama model detection and dynamic settings
 - ChatGPT-style file upload interface
 - Improved UI alignment and user experience
+
+## Major Documentation & Architecture Updates
+
+### Comprehensive README.md Overhaul
+
+**Date:** December 1, 2025
+
+#### 1. **Configurable LLM Provider System** ✅
+- Added comprehensive AI Models table with configurable providers for each component
+- **Main Thinking LLM**: DeepSeek V3, Qwen 7B, Llama 3 (Local) vs OpenAI GPT-4o, Claude 3 (API) vs GPT-3.5-turbo, Claude Haiku (OpenRouter Free)
+- **Memory Manager LLM**: Phi-3 Mini, Qwen 1.8B (Local) vs GPT-3.5 Mini, Claude Haiku (API) vs GPT-3.5-turbo, Llama 3 (OpenRouter Free)
+- **Vision LLM**: Qwen-VL 7B, MiniGPT-4 (Local) vs GPT-4o Vision API, Claude Vision (API) vs LLaVA, Gemini Flash (OpenRouter Free)
+- **Voice Model (TTS)**: Kokoro, DIA 1.6B (Local) vs ElevenLabs, Google TTS (API) vs Coqui TTS, Edge TTS (OpenRouter Free)
+- **ASR (Speech-to-Text)**: Whisper.cpp, Faster-whisper (Local) vs OpenAI Whisper API, Deepgram (API) vs Vosk, AssemblyAI Free Tier (OpenRouter Free)
+- **Internet LLM**: Llama 3, Mixtral (Local) vs Perplexity API, Phind (API) vs OpenRouter Free Models
+
+#### 2. **API Provider Management System** ✅
+- **OpenRouter Integration**: Unified API for accessing multiple providers with free tier options
+- **Rate Limit Monitoring**: Automatic tracking of API usage across all providers
+- **Cost Optimization**: Smart fallback to cheaper/free models when limits are approached
+- **Provider Health Checks**: Monitor API availability and response times
+
+#### 3. **API Limit Warnings & Service Management** ✅
+- **Smart Shutdown**: Services automatically disable when approaching API limits
+- **"Luma Getting Sleepy"**: Friendly notifications when Main Memory LLM limits are reached
+- **"Luma Asleep"**: Clear indication when services are disabled due to exhausted limits
+- **Limit Recovery**: Automatic service re-enabling when limits reset
+
+#### 4. **New Phase 6: Internet LLM Integration** ✅
+- **Goals**: Enable AI to search the internet for current information, web browsing and information retrieval capabilities
+- **Components**: Internet LLM container, Web search API integration, Research task management, Content filtering and summarization
+- **Flow**: Research Request → Internet LLM → Web Search → Information Retrieval → Summarization → Main LLM → Response
+
+#### 5. **New Phase 7: API Limit Monitoring & Token Management** ✅
+- **Goals**: Real-time monitoring of API token usage across all providers, automatic service shutdown when approaching limits, friendly notifications, cost optimization and budget management
+- **Components**: Token usage tracking service, API limit monitoring system, Service health dashboard, Notification system, Automatic fallback management
+- **Flow**: API Usage → Token Tracker → Limit Monitor → Warning Notifications → Dashboard, Service Shutdown → Graceful Degradation, Cost Optimization → Provider Switching
+
+#### 6. **New Phase 8: Advanced Monitoring Dashboard** ✅
+- **Goals**: GPU usage monitoring for Ollama users, system performance metrics, combined with Phase 7's token monitoring, hardware resource tracking, performance optimization insights
+- **Components**: GPU monitoring service, System metrics collection, Performance dashboard, Resource utilization tracking, Hardware health monitoring
+- **Flow**: System Metrics → Monitoring Service → Dashboard → GPU Usage → Performance Insights, Memory Usage → Optimization Suggestions, CPU Usage → Resource Management
+
+#### 7. **Phase Renumbering** ✅
+- Original Phase 6 (OBS + Twitch Chat Integration) → **Phase 9**
+- Original Phase 7 (Discord Bot) → **Phase 10**
+- Added **Phase 6**: Internet LLM Integration
+- Added **Phase 7**: API Limit Monitoring & Token Management
+- Added **Phase 8**: Advanced Monitoring Dashboard
+
+#### 8. **Enhanced Dockerized Architecture** ✅
+Updated architecture diagram to include:
+- Frontend: Chat + Avatar + Webcam + OBS + Dashboard + Monitoring
+- Monitoring Service: Token Usage + GPU Stats
+- API Limit Monitor with Service Health
+- Internet LLM → Web Search API
+- Notifications ("Luma Sleepy/Asleep")
+- Additional containers: TTS, Internet LLM, GPU Monitor, Token Tracker
+
+#### 9. **Comprehensive Next Steps Update** ✅
+- Marked Phase 1 as COMPLETE with ✅
+- Added detailed descriptions for all new phases (6-10)
+- Added Configuration Management section with feature toggles, model provider selection, API limit monitoring, GPU monitoring
+- Added Model Provider Selection section with OpenRouter, Local Models, Cloud APIs, Automatic Fallback
+
+#### 10. **Expanded Suggested Folder Structure** ✅
+- **Backend**: Added internet_search.py, monitoring.py, internet_llm.py, monitoring_service.py, api_limits.py, gpu_monitor.py, cost_optimizer.py, notifications.py, settings.py
+- **Webapp Components**: Added InternetSearch.jsx, MonitoringDashboard.jsx, Notifications.jsx, SettingsPage.jsx
+- **New Directories**: monitoring/ (GPU monitoring, token tracking, health checks), docs/ (API documentation, model configuration, deployment guides)
+
+### Updated Docker Compose Architecture
+
+#### 1. **Enhanced Service Structure** ✅
+- **Backend API Server**: Phase 1-10, ports 8000:8000, environment variables for all model providers
+- **Web Frontend**: Phase 1-10, ports 5000:5000, connects to backend
+- **Discord Bot**: Phase 10, depends on backend and db
+- **Ollama Service**: Enhanced with OLLAMA_HOST and OLLAMA_ORIGINS environment variables
+
+#### 2. **New Phase 2 Services (Voice Input & Output)** ✅
+- **ASR Service**: Whisper model, ports 9000:9000, WHISPER_MODEL and WHISPER_DEVICE environment variables
+- **TTS Service**: Kokoro/DIA 1.6B models, ports 9001:9001, TTS_MODEL and TTS_DEVICE environment variables
+
+#### 3. **New Phase 4 Service (Vision Integration)** ✅
+- **Vision Service**: Qwen-VL 7B/MiniGPT-4 models, ports 9002:9002, VISION_MODEL and VISION_DEVICE environment variables
+
+#### 4. **New Phase 6 Service (Internet LLM Integration)** ✅
+- **Internet LLM Service**: Llama 3/Mixtral models, ports 9003:9003, PERPLEXITY_API_KEY and OPENROUTER_API_KEY environment variables
+
+#### 5. **New Phase 7-8 Services (Monitoring & Dashboard)** ✅
+- **Monitoring Service**: Prometheus and Grafana integration, ports 9004:9004, GPU_MONITORING and TOKEN_TRACKING enabled
+- **Prometheus**: Metrics collection, ports 9090:9090, 200h retention time
+- **Grafana**: Monitoring dashboards, ports 3000:3000, admin password configured
+
+#### 6. **Infrastructure Services** ✅
+- **Redis**: Caching and session storage, ports 6379:6379
+- **Nginx**: Reverse proxy for production, ports 80:80 and 443:443
+
+#### 7. **Enhanced Volume Management** ✅
+- Added prometheus_data, grafana_data, redis_data volumes
+- Updated existing volumes: postgres_data, ollama_data
+
+### Implementation Status
+
+#### ✅ **COMPLETED UPDATES:**
+1. **README.md**: Complete overhaul with configurable LLM providers, new phases, enhanced architecture
+2. **docker-compose.yml**: Comprehensive service architecture for all 10 phases
+3. **DevLog.md**: Updated documentation of all changes and new features
+
+#### 📋 **New Phase Structure:**
+- **Phase 1**: Text Chat + Hybrid Memory ✅ COMPLETE
+- **Phase 2**: Voice Input & Output (ASR + TTS) 🚧
+- **Phase 3**: Avatar Integration (PNG/Live2D/3D) 🚧
+- **Phase 4**: Vision Integration (Webcam/Screen Share) 🚧
+- **Phase 5**: Optional Memory LLM 🚧
+- **Phase 6**: Internet LLM Integration (NEW) 🚧
+- **Phase 7**: API Limit Monitoring & Token Management (NEW) 🚧
+- **Phase 8**: Advanced Monitoring Dashboard (NEW) 🚧
+- **Phase 9**: OBS + Twitch Chat Integration (renumbered) 🚧
+- **Phase 10**: Advanced Discord Bot Features (renumbered) 🚧
+
+### Key Features Added
+
+1. **Configurable LLM Sources**: Each AI component can use different providers (Local/Ollama, API/OpenAI/Claude, Free/OpenRouter)
+2. **API Limit Management**: Smart monitoring with "Luma getting sleepy/asleep" notifications
+3. **GPU Monitoring**: Real-time tracking for Ollama users with Grafana dashboards
+4. **Internet Integration**: Web browsing capabilities for current information retrieval
+5. **Cost Optimization**: Automatic fallback to free/cheaper models when limits are reached
+6. **Comprehensive Monitoring**: Token usage, GPU stats, service health in unified dashboard
+7. **Production-Ready Architecture**: Nginx reverse proxy, Redis caching, Prometheus/Grafana monitoring
+
+### Next Implementation Steps
+
+1. **Phase 2**: Implement ASR/TTS services with Whisper and Kokoro/DIA models
+2. **Phase 3**: Develop avatar rendering with Three.js/Pixi.js for lip-sync and expressions
+3. **Phase 4**: Integrate vision processing with Qwen-VL/MiniGPT-4 models
+4. **Phase 6**: Build internet search capabilities with web browsing LLMs
+5. **Phase 7-8**: Deploy monitoring stack with Prometheus/Grafana and token tracking
+6. **Phase 9**: Implement OBS browser source and Twitch chat integration
+7. **Phase 10**: Enhance Discord bot with multi-speaker voice channels
+
+The project now has a comprehensive blueprint supporting all 10 phases with full configurability, monitoring, and production-ready architecture.
