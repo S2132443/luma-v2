@@ -22,10 +22,99 @@ All modules are **toggleable**, allowing you to enable only the features you nee
 ### Backend
 - **Language / Framework:** Python / FastAPI  
 - **Realtime:** WebSockets / WebRTC for audio/video  
-- **Task Queue (optional):** Celery / RQ for async tasks  
+- **Task Queue (Phase 1 Enhancement):** Celery with Redis/RabbitMQ for async tasks  
 - **Database / Memory:**  
   - Short-term memory: in-memory dict / Redis  
-  - Long-term memory: Vector DB (ChromaDB, Weaviate) + SQLite fallback  
+  - Long-term memory: Vector DB (ChromaDB, Weaviate) + SQLite fallback
+
+### Asynchronous Task Processing (Celery Integration)
+**Phase 1 Enhancement: Background Task Management**
+
+To improve scalability and responsiveness, Phase 1 will integrate Celery for handling computationally intensive and I/O-bound operations asynchronously:
+
+#### **Celery Workers for Phase 1 Tasks**
+- **Memory Processing Worker**: Handles memory suggestion generation, extraction, and database operations
+- **Document Processing Worker**: Processes uploaded documents (PDF, Excel, TXT, JSON, CSV) in the background
+- **LLM API Worker**: Manages API calls to external LLM providers with retry logic and rate limiting
+- **Token Usage Worker**: Tracks and aggregates token usage metrics across all operations
+
+#### **Task Queue Architecture**
+\`\`\`
+User Request → FastAPI Backend → Celery Task Queue
+                                    │
+                                    ▼
+                    ┌─────────────────────────────────┐
+                    │        Celery Workers           │
+                    ├─────────────────────────────────┤
+                    │ • Memory Processing             │
+                    │ • Document Processing           │
+                    │ • LLM API Calls                 │
+                    │ • Token Tracking                │
+                    └─────────────────────────────────┘
+                                    │
+                                    ▼
+                              Redis/RabbitMQ
+                              (Message Broker)
+\`\`\`
+
+#### **Benefits of Celery Integration**
+- **Improved Responsiveness**: Web requests don't block on heavy computations
+- **Scalability**: Workers can be scaled independently based on load
+- **Reliability**: Failed tasks can be retried automatically
+- **Resource Management**: CPU-intensive tasks don't impact web server performance
+- **Queue Management**: Prioritize critical tasks and handle backpressure
+
+#### **Phase 1 Celery Tasks**
+1. **Memory Suggestion Processing**
+   - Extract memory suggestions from LLM responses
+   - Validate and store suggested memories in database
+   - Update memory importance scores and tags
+
+2. **Document Upload Processing**
+   - Parse uploaded documents (PDF, Excel, TXT, JSON, CSV)
+   - Extract and chunk content for memory storage
+   - Process large documents without blocking web requests
+
+3. **LLM API Call Management**
+   - Handle API rate limiting and retries
+   - Manage API key rotation and fallback providers
+   - Track API usage and costs
+
+4. **Token Usage Aggregation**
+   - Collect token usage metrics from all operations
+   - Generate usage reports and alerts
+   - Update database with aggregated statistics
+
+#### **Celery Configuration**
+- **Broker**: Redis (already used for caching) or RabbitMQ for production
+- **Result Backend**: Redis for task result storage
+- **Task Serialization**: JSON for compatibility and debugging
+- **Retry Policy**: Exponential backoff for failed API calls
+- **Task Timeouts**: Configurable timeouts per task type
+- **Worker Concurrency**: Adjustable based on available CPU cores
+
+#### **Docker Integration**
+\`\`\`
+celery-worker:
+  build: ./backend
+  command: celery -A backend.celery_app worker --loglevel=info
+  depends_on:
+    - redis
+    - db
+  environment:
+    - CELERY_BROKER_URL=redis://redis:6379/0
+    - DATABASE_URL=postgresql://luma:lumapass@db:5432/luma
+
+celery-beat:
+  build: ./backend
+  command: celery -A backend.celery_app beat --loglevel=info
+  depends_on:
+    - redis
+    - db
+  environment:
+    - CELERY_BROKER_URL=redis://redis:6379/0
+    - DATABASE_URL=postgresql://luma:lumapass@db:5432/luma
+\`\`\`
 
 ### Frontend
 - **Framework:** React / Solid / Vue  
@@ -302,6 +391,17 @@ Internet LLM → Web Search API    Notifications ("Luma Sleepy/Asleep")
 Avatar (PNG / Live2D / 3D)
 \`\`\`
 
+**Celery Worker Services (Phase 1 Enhancement)**
+- **Memory Processing Worker**: Background memory suggestion extraction and validation
+- **Document Processing Worker**: Asynchronous document parsing and memory storage
+- **LLM API Worker**: Rate-limited API calls with retry logic and fallback management
+- **Token Usage Worker**: Background token tracking and aggregation
+- **Celery Beat Scheduler**: Periodic tasks and scheduled operations
+
+**Message Broker Infrastructure**
+- **Redis**: Task queue and result backend for Celery workers
+- **RabbitMQ**: Alternative message broker for production deployments
+
 **Other Containers / Modules**
 - ASR → microphone input  
 - TTS → voice synthesis
@@ -319,6 +419,8 @@ Avatar (PNG / Live2D / 3D)
 project/
 ├─ backend/
 │   ├─ app.py                    # FastAPI server
+│   ├─ celery_app.py             # Celery application configuration
+│   ├─ tasks.py                  # Celery task definitions
 │   ├─ routers/
 │   │   ├─ text_chat.py          # Phase 1: Text chat endpoints
 │   │   ├─ voice.py              # Phase 2: ASR/TTS endpoints
